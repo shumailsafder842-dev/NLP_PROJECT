@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Language Identifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text: #f1f5f9;
+      --muted: #a5b4cf;
+      --glass: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --accent: #8b5cf6;
+      --accent-2: #22d3ee;
+      --accent-3: #f472b6;
+      --error: #fda4af;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+      color: var(--text);
+      background: linear-gradient(-45deg, #0f0c29, #1b1464, #302b63, #0b1d3a);
+      background-size: 400% 400%;
+      animation: bgShift 18s ease infinite;
+      display: flex;
+      justify-content: center;
+      padding: 48px 16px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* floating glowing blobs */
+    .blob { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .45; z-index: 0; animation: float 14s ease-in-out infinite; }
+    .b1 { width: 340px; height: 340px; background: var(--accent); top: -80px; left: -80px; }
+    .b2 { width: 300px; height: 300px; background: var(--accent-2); bottom: -60px; right: -60px; animation-delay: -5s; }
+    .b3 { width: 220px; height: 220px; background: var(--accent-3); top: 45%; left: 60%; animation-delay: -9s; opacity: .3; }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, -40px) scale(1.12); }
+    }
+
+    .container { width: 100%; max-width: 760px; position: relative; z-index: 1; }
+
+    header { text-align: center; margin-bottom: 30px; }
+    .globe { font-size: 3.2rem; display: inline-block; animation: spin 10s linear infinite; }
+    @keyframes spin { to { transform: rotateY(360deg); } }
+    header h1 {
+      margin: 6px 0 8px;
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -.5px;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent), var(--accent-3));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    header p { margin: 0; color: var(--muted); font-size: 1rem; }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 28px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+    }
+
+    .input-wrap { position: relative; }
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      padding: 16px 16px 34px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 35, .55);
+      color: var(--text);
+      font-size: 1.05rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    textarea::placeholder { color: #7c8bb0; }
+    textarea:focus { border-color: var(--accent-2); box-shadow: 0 0 0 4px rgba(34, 211, 238, .18); }
+    .counter { position: absolute; right: 14px; bottom: 10px; font-size: .75rem; color: var(--muted); pointer-events: none; }
+
+    .row { display: flex; gap: 12px; margin-top: 16px; }
+    button { cursor: pointer; border: none; font-family: inherit; font-size: 1rem; font-weight: 600; transition: transform .15s, box-shadow .25s, opacity .2s; }
+    button:active { transform: scale(.97); }
+    #predictBtn {
+      flex: 1;
+      padding: 14px 22px;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--accent-2));
+      background-size: 200% 100%;
+      box-shadow: 0 8px 24px rgba(139, 92, 246, .4);
+      position: relative;
+      overflow: hidden;
+    }
+    #predictBtn:hover { background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(244, 114, 182, .45); }
+    #predictBtn:disabled { opacity: .7; cursor: wait; transform: none; }
+    #predictBtn .spinner {
+      display: none; width: 16px; height: 16px; margin-right: 8px; vertical-align: -2px;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite;
+    }
+    #predictBtn.loading .spinner { display: inline-block; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    #clearBtn { padding: 14px 22px; border-radius: 14px; background: transparent; color: var(--muted); border: 1px solid var(--glass-border); }
+    #clearBtn:hover { color: #fff; border-color: #fff; }
+
+    .samples { margin-top: 20px; }
+    .samples small { color: var(--muted); display: block; margin-bottom: 10px; }
+    .chip {
+      display: inline-block; margin: 0 6px 8px 0; padding: 7px 14px; font-size: .85rem; border-radius: 999px;
+      background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--glass-border); font-weight: 500;
+    }
+    .chip:hover { background: rgba(34, 211, 238, .18); border-color: var(--accent-2); transform: translateY(-2px); }
+
+    .error {
+      margin-top: 18px; padding: 12px 16px; border-radius: 12px; display: none;
+      background: rgba(244, 63, 94, .12); border: 1px solid rgba(244, 63, 94, .5); color: var(--error);
+      animation: pop .3s ease;
+    }
+
+    #result { margin-top: 26px; display: none; animation: pop .45s ease; }
+    @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+    .top {
+      text-align: center; padding: 24px 18px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(34,211,238,.2));
+      border: 1px solid var(--glass-border);
+      position: relative; overflow: hidden;
+    }
+    .top::before {
+      content: ""; position: absolute; inset: -50%;
+      background: conic-gradient(from 0deg, transparent, rgba(255,255,255,.08), transparent 30%);
+      animation: rot 8s linear infinite;
+    }
+    .top > * { position: relative; }
+    .flag { font-size: 3.6rem; line-height: 1; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4)); }
+    .top .label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .14em; margin-top: 8px; }
+    .top .lang { font-size: 2.3rem; font-weight: 700; margin: 2px 0 6px; }
+    .badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .badge { padding: 4px 12px; border-radius: 999px; font-size: .82rem; font-weight: 600; background: rgba(0,0,0,.28); border: 1px solid var(--glass-border); }
+    .badge.conf { color: var(--accent-2); }
+
+    .bars { margin-top: 22px; }
+    .bar-row { margin-bottom: 14px; }
+    .bar-head { display: flex; justify-content: space-between; font-size: .92rem; margin-bottom: 6px; }
+    .bar-bg { height: 10px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
+    .bar-fill {
+      height: 100%; width: 0; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(34, 211, 238, .6);
+      transition: width .9s cubic-bezier(.2, .8, .2, 1);
+    }
+    .note { margin-top: 10px; color: var(--muted); font-size: .85rem; text-align: center; }
+
+    .supported { margin-top: 30px; text-align: center; color: var(--muted); font-size: .82rem; }
+    .supported span {
+      display: inline-block; margin: 4px 3px; padding: 4px 12px; border-radius: 999px;
+      border: 1px solid var(--glass-border); background: rgba(255,255,255,.04);
+    }
+    footer { text-align: center; margin-top: 22px; color: #7c8bb0; font-size: .78rem; }
+
+    @media (max-width: 520px) {
+      header h1 { font-size: 2rem; }
+      .card { padding: 18px; }
+      .row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="container">
+    <header>
+      <div class="globe">🌍</div>
+      <h1>Language Identifier</h1>
+      <p>Paste any text — our LSTM model will tell you what language it is.</p>
+    </header>
+
+    <div class="card">
+      <div class="input-wrap">
+        <textarea id="text" placeholder="Type or paste a sentence in any supported language..." maxlength="2000"></textarea>
+        <div class="counter"><span id="count">0</span> / 2000</div>
+      </div>
+
+      <div class="row">
+        <button id="predictBtn"><span class="spinner"></span><span id="btnLabel">✨ Detect Language</span></button>
+        <button id="clearBtn" type="button">Clear</button>
+      </div>
+
+      <div class="samples">
+        <small>Try an example:</small>
+        <button class="chip" data-text="I love machine learning and artificial intelligence">🇬🇧 English</button>
+        <button class="chip" data-text="Bonjour, comment allez-vous aujourd'hui ?">🇫🇷 Français</button>
+        <button class="chip" data-text="Ich lerne gerne neue Sprachen und reise viel">🇩🇪 Deutsch</button>
+        <button class="chip" data-text="Me gusta mucho aprender cosas nuevas todos los días">🇪🇸 Español</button>
+        <button class="chip" data-text="مجھے مشین لرننگ سیکھنا پسند ہے">🇵🇰 اردو</button>
+        <button class="chip" data-text="मैं मशीन लर्निंग सीखना चाहता हूँ">🇮🇳 हिन्दी</button>
+        <button class="chip" data-text="Я очень люблю читать книги по вечерам">🇷🇺 Русский</button>
+        <button class="chip" data-text="私は毎日日本語を勉強しています">🇯🇵 日本語</button>
+      </div>
+
+      <div class="error" id="error"></div>
+
+      <div id="result">
+        <div class="top">
+          <div class="flag" id="topFlag"></div>
+          <div class="label">Detected language</div>
+          <div class="lang" id="topLang"></div>
+          <div class="badges">
+            <span class="badge" id="topCode"></span>
+            <span class="badge conf" id="topConf"></span>
+          </div>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div class="note" id="note"></div>
+      </div>
+    </div>
+
+    <div class="supported">
+      Supports 20 languages<br>
+      {% for lang in languages %}<span>{{ lang }}</span>{% endfor %}
+    </div>
+
+    <footer>Embedding + LSTM classifier · trained on papluca/language-identification</footer>
+  </div>
+
+  <script>
+    const FLAGS = {
+      ar: "🇸🇦", bg: "🇧🇬", de: "🇩🇪", el: "🇬🇷", en: "🇬🇧", es: "🇪🇸", fr: "🇫🇷",
+      hi: "🇮🇳", it: "🇮🇹", ja: "🇯🇵", nl: "🇳🇱", pl: "🇵🇱", pt: "🇵🇹", ru: "🇷🇺",
+      sw: "🇰🇪", th: "🇹🇭", tr: "🇹🇷", ur: "🇵🇰", vi: "🇻🇳", zh: "🇨🇳"
+    };
+
+    const textEl = document.getElementById("text");
+    const btn = document.getElementById("predictBtn");
+    const btnLabel = document.getElementById("btnLabel");
+    const errorEl = document.getElementById("error");
+    const resultEl = document.getElementById("result");
+    const countEl = document.getElementById("count");
+
+    function showError(msg) {
+      errorEl.textContent = "⚠️ " + msg;
+      errorEl.style.display = "block";
+      resultEl.style.display = "none";
+    }
+
+    async function detect() {
+      const text = textEl.value.trim();
+      errorEl.style.display = "none";
+      if (!text) { showError("Please enter some text."); return; }
+
+      btn.disabled = true;
+      btn.classList.add("loading");
+      btnLabel.textContent = "Detecting...";
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (!res.ok) { showError(data.error || "Something went wrong."); return; }
+        render(data);
+      } catch (e) {
+        showError("Could not reach the server. Is the Flask app running?");
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove("loading");
+        btnLabel.textContent = "✨ Detect Language";
+      }
+    }
+
+    function render(data) {
+      const top = data.predictions[0];
+      document.getElementById("topFlag").textContent = FLAGS[top.code] || "🌐";
+      document.getElementById("topLang").textContent = top.language;
+      document.getElementById("topCode").textContent = "Code: " + top.code.toUpperCase();
+      document.getElementById("topConf").textContent = top.confidence.toFixed(2) + "% confident";
+
+      const bars = document.getElementById("bars");
+      bars.innerHTML = "";
+      data.predictions.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="bar-head"><span>${FLAGS[p.code] || "🌐"} ${p.language}</span><span>${p.confidence.toFixed(2)}%</span></div>
+          <div class="bar-bg"><div class="bar-fill"></div></div>`;
+        bars.appendChild(row);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          row.querySelector(".bar-fill").style.width = Math.max(p.confidence, 1) + "%";
+        }));
+      });
+
+      document.getElementById("note").textContent = data.known_words < data.total_words
+        ? `Model recognised ${data.known_words} of ${data.total_words} words — longer text gives more reliable results.`
+        : "";
+      resultEl.style.display = "block";
+      resultEl.style.animation = "none"; resultEl.offsetHeight; resultEl.style.animation = "";
+    }
+
+    btn.addEventListener("click", detect);
+    textEl.addEventListener("input", () => { countEl.textContent = textEl.value.length; });
+    textEl.addEventListener("keydown", e => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) detect();
+    });
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      textEl.value = "";
+      countEl.textContent = 0;
+      resultEl.style.display = "none";
+      errorEl.style.display = "none";
+      textEl.focus();
+    });
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        textEl.value = chip.dataset.text;
+        countEl.textContent = textEl.value.length;
+        detect();
+      });
+    });
+  </script>
+</body>
+</html>
