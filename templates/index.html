@@ -1,339 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Language Identifier</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --text: #f1f5f9;
-      --muted: #a5b4cf;
-      --glass: rgba(255, 255, 255, 0.07);
-      --glass-border: rgba(255, 255, 255, 0.15);
-      --accent: #8b5cf6;
-      --accent-2: #22d3ee;
-      --accent-3: #f472b6;
-      --error: #fda4af;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
-      color: var(--text);
-      background: linear-gradient(-45deg, #0f0c29, #1b1464, #302b63, #0b1d3a);
-      background-size: 400% 400%;
-      animation: bgShift 18s ease infinite;
-      display: flex;
-      justify-content: center;
-      padding: 48px 16px;
-      overflow-x: hidden;
-      position: relative;
-    }
-    @keyframes bgShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SupportBot — AI Customer Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #070914;
+    --card: rgba(255,255,255,.05);
+    --border: rgba(255,255,255,.10);
+    --text: #e8ebf7;
+    --muted: #9aa3c4;
+    --a1: #7c5cff;
+    --a2: #22d3ee;
+    --a3: #f472b6;
+    --grad: linear-gradient(135deg, var(--a1), var(--a2));
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden; line-height: 1.55;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+  .orb { position: fixed; border-radius: 50%; filter: blur(110px); opacity: .32; z-index: -1; animation: float 14s ease-in-out infinite; }
+  .o1 { width: 460px; height: 460px; background: var(--a1); top: -120px; left: -100px; }
+  .o2 { width: 400px; height: 400px; background: var(--a2); bottom: -120px; right: -80px; animation-delay: -5s; }
+  .o3 { width: 280px; height: 280px; background: var(--a3); top: 50%; left: 50%; opacity: .15; animation-delay: -9s; }
+  @keyframes float { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px,-50px); } }
 
-    /* floating glowing blobs */
-    .blob { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .45; z-index: 0; animation: float 14s ease-in-out infinite; }
-    .b1 { width: 340px; height: 340px; background: var(--accent); top: -80px; left: -80px; }
-    .b2 { width: 300px; height: 300px; background: var(--accent-2); bottom: -60px; right: -60px; animation-delay: -5s; }
-    .b3 { width: 220px; height: 220px; background: var(--accent-3); top: 45%; left: 60%; animation-delay: -9s; opacity: .3; }
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(30px, -40px) scale(1.12); }
-    }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: min(1200px, 94%); margin: 0 auto; padding: 22px 0;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.35rem; }
+  .logo-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--grad); display: grid; place-items: center; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399; }
 
-    .container { width: 100%; max-width: 760px; position: relative; z-index: 1; }
+  .hero { text-align: center; width: min(800px, 92%); margin: 10px auto 34px; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -1.2px; line-height: 1.12; margin-bottom: 14px; }
+  .grad-text { background: linear-gradient(120deg, #a78bfa, #22d3ee, #f472b6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--muted); font-size: 1.05rem; }
 
-    header { text-align: center; margin-bottom: 30px; }
-    .globe { font-size: 3.2rem; display: inline-block; animation: spin 10s linear infinite; }
-    @keyframes spin { to { transform: rotateY(360deg); } }
-    header h1 {
-      margin: 6px 0 8px;
-      font-size: 2.6rem;
-      font-weight: 700;
-      letter-spacing: -.5px;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent), var(--accent-3));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    header p { margin: 0; color: var(--muted); font-size: 1rem; }
+  .layout { width: min(1200px, 94%); margin: 0 auto 60px; display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 22px; backdrop-filter: blur(16px); overflow: hidden; }
+  .panel-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; }
+  .head-left { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-size: 1.1rem; }
+  .head-left small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; }
+  .clear { background: none; border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 10px; cursor: pointer; font: inherit; font-size: .82rem; transition: .2s; }
+  .clear:hover { color: #fff; border-color: rgba(255,255,255,.3); }
 
-    .card {
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 28px;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
-    }
+  .chat { height: 440px; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
+  .chat::-webkit-scrollbar { width: 6px; }
+  .chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  .row { display: flex; flex-direction: column; max-width: 82%; animation: pop .35s ease; }
+  .row.user { align-self: flex-end; align-items: flex-end; }
+  .row.bot { align-self: flex-start; }
+  @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+  .bubble { padding: 12px 16px; border-radius: 18px; font-size: .95rem; word-wrap: break-word; }
+  .user .bubble { background: var(--grad); color: #fff; border-bottom-right-radius: 4px; }
+  .bot .bubble { background: rgba(255,255,255,.08); border-bottom-left-radius: 4px; }
+  .time { font-size: .7rem; color: var(--muted); margin-top: 4px; padding: 0 4px; }
+  .typing { display: flex; gap: 5px; padding: 15px 16px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: bounce 1s infinite; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-6px); opacity: 1; } }
 
-    .input-wrap { position: relative; }
-    textarea {
-      width: 100%;
-      min-height: 150px;
-      resize: vertical;
-      padding: 16px 16px 34px;
-      border-radius: 16px;
-      border: 1px solid var(--glass-border);
-      background: rgba(10, 10, 35, .55);
-      color: var(--text);
-      font-size: 1.05rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color .25s, box-shadow .25s;
-    }
-    textarea::placeholder { color: #7c8bb0; }
-    textarea:focus { border-color: var(--accent-2); box-shadow: 0 0 0 4px rgba(34, 211, 238, .18); }
-    .counter { position: absolute; right: 14px; bottom: 10px; font-size: .75rem; color: var(--muted); pointer-events: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 14px; }
+  .chip { font-size: .8rem; padding: 7px 13px; border-radius: 999px; background: rgba(124,92,255,.15); border: 1px solid rgba(124,92,255,.4); color: #cfc4ff; cursor: pointer; transition: .2s; }
+  .chip:hover { background: rgba(124,92,255,.35); transform: translateY(-1px); }
+  .input-row { display: flex; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--border); }
+  .input-row input { flex: 1; background: rgba(0,0,0,.28); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px; color: var(--text); font: inherit; outline: none; transition: .2s; }
+  .input-row input:focus { border-color: var(--a1); box-shadow: 0 0 0 3px rgba(124,92,255,.2); }
+  .send { padding: 0 24px; border: none; border-radius: 14px; background: var(--grad); color: #fff; font-weight: 600; cursor: pointer; transition: .25s; box-shadow: 0 8px 24px -8px rgba(124,92,255,.7); }
+  .send:hover { transform: translateY(-2px); }
+  .send:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-    .row { display: flex; gap: 12px; margin-top: 16px; }
-    button { cursor: pointer; border: none; font-family: inherit; font-size: 1rem; font-weight: 600; transition: transform .15s, box-shadow .25s, opacity .2s; }
-    button:active { transform: scale(.97); }
-    #predictBtn {
-      flex: 1;
-      padding: 14px 22px;
-      border-radius: 14px;
-      color: #fff;
-      background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--accent-2));
-      background-size: 200% 100%;
-      box-shadow: 0 8px 24px rgba(139, 92, 246, .4);
-      position: relative;
-      overflow: hidden;
-    }
-    #predictBtn:hover { background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(244, 114, 182, .45); }
-    #predictBtn:disabled { opacity: .7; cursor: wait; transform: none; }
-    #predictBtn .spinner {
-      display: none; width: 16px; height: 16px; margin-right: 8px; vertical-align: -2px;
-      border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite;
-    }
-    #predictBtn.loading .spinner { display: inline-block; }
-    @keyframes rot { to { transform: rotate(360deg); } }
-    #clearBtn { padding: 14px 22px; border-radius: 14px; background: transparent; color: var(--muted); border: 1px solid var(--glass-border); }
-    #clearBtn:hover { color: #fff; border-color: #fff; }
+  .side { display: flex; flex-direction: column; gap: 22px; }
+  .block { padding: 22px; }
+  .block h3 { font-size: 1.05rem; margin-bottom: 14px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { padding: 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--border); text-align: center; }
+  .stat b { display: block; font-family: 'Space Grotesk'; font-size: 1.45rem; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .stat span { font-size: .75rem; color: var(--muted); }
+  .arch { display: flex; flex-direction: column; gap: 8px; }
+  .arch-step { padding: 10px 14px; border-radius: 12px; font-size: .86rem; background: rgba(34,211,238,.07); border: 1px solid rgba(34,211,238,.22); }
+  .arch-step b { color: var(--a2); font-weight: 600; }
+  .arrow { text-align: center; color: var(--muted); font-size: .8rem; line-height: 1; }
+  .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tag { font-size: .75rem; padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid var(--border); color: var(--muted); }
 
-    .samples { margin-top: 20px; }
-    .samples small { color: var(--muted); display: block; margin-bottom: 10px; }
-    .chip {
-      display: inline-block; margin: 0 6px 8px 0; padding: 7px 14px; font-size: .85rem; border-radius: 999px;
-      background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--glass-border); font-weight: 500;
-    }
-    .chip:hover { background: rgba(34, 211, 238, .18); border-color: var(--accent-2); transform: translateY(-2px); }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 26px 0 36px; border-top: 1px solid var(--border); }
 
-    .error {
-      margin-top: 18px; padding: 12px 16px; border-radius: 12px; display: none;
-      background: rgba(244, 63, 94, .12); border: 1px solid rgba(244, 63, 94, .5); color: var(--error);
-      animation: pop .3s ease;
-    }
-
-    #result { margin-top: 26px; display: none; animation: pop .45s ease; }
-    @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
-
-    .top {
-      text-align: center; padding: 24px 18px; border-radius: 20px;
-      background: linear-gradient(135deg, rgba(139,92,246,.28), rgba(34,211,238,.2));
-      border: 1px solid var(--glass-border);
-      position: relative; overflow: hidden;
-    }
-    .top::before {
-      content: ""; position: absolute; inset: -50%;
-      background: conic-gradient(from 0deg, transparent, rgba(255,255,255,.08), transparent 30%);
-      animation: rot 8s linear infinite;
-    }
-    .top > * { position: relative; }
-    .flag { font-size: 3.6rem; line-height: 1; filter: drop-shadow(0 6px 12px rgba(0,0,0,.4)); }
-    .top .label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .14em; margin-top: 8px; }
-    .top .lang { font-size: 2.3rem; font-weight: 700; margin: 2px 0 6px; }
-    .badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .badge { padding: 4px 12px; border-radius: 999px; font-size: .82rem; font-weight: 600; background: rgba(0,0,0,.28); border: 1px solid var(--glass-border); }
-    .badge.conf { color: var(--accent-2); }
-
-    .bars { margin-top: 22px; }
-    .bar-row { margin-bottom: 14px; }
-    .bar-head { display: flex; justify-content: space-between; font-size: .92rem; margin-bottom: 6px; }
-    .bar-bg { height: 10px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
-    .bar-fill {
-      height: 100%; width: 0; border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      box-shadow: 0 0 12px rgba(34, 211, 238, .6);
-      transition: width .9s cubic-bezier(.2, .8, .2, 1);
-    }
-    .note { margin-top: 10px; color: var(--muted); font-size: .85rem; text-align: center; }
-
-    .supported { margin-top: 30px; text-align: center; color: var(--muted); font-size: .82rem; }
-    .supported span {
-      display: inline-block; margin: 4px 3px; padding: 4px 12px; border-radius: 999px;
-      border: 1px solid var(--glass-border); background: rgba(255,255,255,.04);
-    }
-    footer { text-align: center; margin-top: 22px; color: #7c8bb0; font-size: .78rem; }
-
-    @media (max-width: 520px) {
-      header h1 { font-size: 2rem; }
-      .card { padding: 18px; }
-      .row { flex-direction: column; }
-    }
-  </style>
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .row { max-width: 92%; } .send { padding: 0 16px; } }
+</style>
 </head>
 <body>
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-  <div class="blob b3"></div>
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
 
-  <div class="container">
-    <header>
-      <div class="globe">🌍</div>
-      <h1>Language Identifier</h1>
-      <p>Paste any text — our LSTM model will tell you what language it is.</p>
-    </header>
+  <header>
+    <div class="logo"><span class="logo-mark">✦</span> SupportBot</div>
+    <div class="status"><span class="dot"></span> Model online</div>
+  </header>
 
-    <div class="card">
-      <div class="input-wrap">
-        <textarea id="text" placeholder="Type or paste a sentence in any supported language..." maxlength="2000"></textarea>
-        <div class="counter"><span id="count">0</span> / 2000</div>
-      </div>
-
-      <div class="row">
-        <button id="predictBtn"><span class="spinner"></span><span id="btnLabel">✨ Detect Language</span></button>
-        <button id="clearBtn" type="button">Clear</button>
-      </div>
-
-      <div class="samples">
-        <small>Try an example:</small>
-        <button class="chip" data-text="I love machine learning and artificial intelligence">🇬🇧 English</button>
-        <button class="chip" data-text="Bonjour, comment allez-vous aujourd'hui ?">🇫🇷 Français</button>
-        <button class="chip" data-text="Ich lerne gerne neue Sprachen und reise viel">🇩🇪 Deutsch</button>
-        <button class="chip" data-text="Me gusta mucho aprender cosas nuevas todos los días">🇪🇸 Español</button>
-        <button class="chip" data-text="مجھے مشین لرننگ سیکھنا پسند ہے">🇵🇰 اردو</button>
-        <button class="chip" data-text="मैं मशीन लर्निंग सीखना चाहता हूँ">🇮🇳 हिन्दी</button>
-        <button class="chip" data-text="Я очень люблю читать книги по вечерам">🇷🇺 Русский</button>
-        <button class="chip" data-text="私は毎日日本語を勉強しています">🇯🇵 日本語</button>
-      </div>
-
-      <div class="error" id="error"></div>
-
-      <div id="result">
-        <div class="top">
-          <div class="flag" id="topFlag"></div>
-          <div class="label">Detected language</div>
-          <div class="lang" id="topLang"></div>
-          <div class="badges">
-            <span class="badge" id="topCode"></span>
-            <span class="badge conf" id="topConf"></span>
-          </div>
-        </div>
-        <div class="bars" id="bars"></div>
-        <div class="note" id="note"></div>
-      </div>
-    </div>
-
-    <div class="supported">
-      Supports 20 languages<br>
-      {% for lang in languages %}<span>{{ lang }}</span>{% endfor %}
-    </div>
-
-    <footer>Embedding + LSTM classifier · trained on papluca/language-identification</footer>
+  <div class="hero">
+    <h1>Customer support that <span class="grad-text">understands you</span></h1>
+    <p>A deep learning chatbot built with a Bidirectional LSTM encoder, an LSTM decoder, and Word2Vec embeddings, trained on thousands of real support conversations.</p>
   </div>
 
-  <script>
-    const FLAGS = {
-      ar: "🇸🇦", bg: "🇧🇬", de: "🇩🇪", el: "🇬🇷", en: "🇬🇧", es: "🇪🇸", fr: "🇫🇷",
-      hi: "🇮🇳", it: "🇮🇹", ja: "🇯🇵", nl: "🇳🇱", pl: "🇵🇱", pt: "🇵🇹", ru: "🇷🇺",
-      sw: "🇰🇪", th: "🇹🇭", tr: "🇹🇷", ur: "🇵🇰", vi: "🇻🇳", zh: "🇨🇳"
-    };
+  <main class="layout">
+    <!-- Chat -->
+    <section class="panel">
+      <div class="panel-head">
+        <div class="head-left">
+          <div class="avatar">🤖</div>
+          <div>SupportBot<small>Typically replies in a few seconds</small></div>
+        </div>
+        <button class="clear" id="clear">Clear chat</button>
+      </div>
 
-    const textEl = document.getElementById("text");
-    const btn = document.getElementById("predictBtn");
-    const btnLabel = document.getElementById("btnLabel");
-    const errorEl = document.getElementById("error");
-    const resultEl = document.getElementById("result");
-    const countEl = document.getElementById("count");
+      <div class="chat" id="chat"></div>
 
-    function showError(msg) {
-      errorEl.textContent = "⚠️ " + msg;
-      errorEl.style.display = "block";
-      resultEl.style.display = "none";
-    }
+      <div class="chips" id="chips">
+        <span class="chip">Where is my order?</span>
+        <span class="chip">I need a refund</span>
+        <span class="chip">I want to cancel my order</span>
+        <span class="chip">How do I change my shipping address?</span>
+        <span class="chip">I forgot my password</span>
+        <span class="chip">Talk to a human agent</span>
+      </div>
 
-    async function detect() {
-      const text = textEl.value.trim();
-      errorEl.style.display = "none";
-      if (!text) { showError("Please enter some text."); return; }
+      <form class="input-row" id="form">
+        <input id="input" type="text" placeholder="Type your question…" autocomplete="off" />
+        <button class="send" id="send" type="submit">Send</button>
+      </form>
+    </section>
 
-      btn.disabled = true;
-      btn.classList.add("loading");
-      btnLabel.textContent = "Detecting...";
-      try {
-        const res = await fetch("/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text })
-        });
-        const data = await res.json();
-        if (!res.ok) { showError(data.error || "Something went wrong."); return; }
-        render(data);
-      } catch (e) {
-        showError("Could not reach the server. Is the Flask app running?");
-      } finally {
-        btn.disabled = false;
-        btn.classList.remove("loading");
-        btnLabel.textContent = "✨ Detect Language";
-      }
-    }
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="panel block">
+        <h3>📊 Model performance</h3>
+        <div class="stats">
+          <div class="stat"><b>68.2%</b><span>Test accuracy</span></div>
+          <div class="stat"><b>1.21</b><span>Test loss</span></div>
+          <div class="stat"><b>24.6K</b><span>Training pairs</span></div>
+          <div class="stat"><b>6,378</b><span>Vocabulary</span></div>
+        </div>
+      </div>
 
-    function render(data) {
-      const top = data.predictions[0];
-      document.getElementById("topFlag").textContent = FLAGS[top.code] || "🌐";
-      document.getElementById("topLang").textContent = top.language;
-      document.getElementById("topCode").textContent = "Code: " + top.code.toUpperCase();
-      document.getElementById("topConf").textContent = top.confidence.toFixed(2) + "% confident";
+      <div class="panel block">
+        <h3>🧠 How it works</h3>
+        <div class="arch">
+          <div class="arch-step"><b>1. Clean</b> — lowercase and strip noise</div>
+          <div class="arrow">▼</div>
+          <div class="arch-step"><b>2. Embed</b> — Word2Vec skip-gram (300d)</div>
+          <div class="arrow">▼</div>
+          <div class="arch-step"><b>3. Encode</b> — Bidirectional LSTM (128)</div>
+          <div class="arrow">▼</div>
+          <div class="arch-step"><b>4. Decode</b> — LSTM (256) writes the reply word by word</div>
+        </div>
+      </div>
 
-      const bars = document.getElementById("bars");
-      bars.innerHTML = "";
-      data.predictions.forEach(p => {
-        const row = document.createElement("div");
-        row.className = "bar-row";
-        row.innerHTML = `
-          <div class="bar-head"><span>${FLAGS[p.code] || "🌐"} ${p.language}</span><span>${p.confidence.toFixed(2)}%</span></div>
-          <div class="bar-bg"><div class="bar-fill"></div></div>`;
-        bars.appendChild(row);
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          row.querySelector(".bar-fill").style.width = Math.max(p.confidence, 1) + "%";
-        }));
+      <div class="panel block">
+        <h3>🎯 Topics it can help with</h3>
+        <div class="tags">
+          <span class="tag">Cancel order</span><span class="tag">Track order</span>
+          <span class="tag">Refunds</span><span class="tag">Invoices</span>
+          <span class="tag">Shipping address</span><span class="tag">Delivery options</span>
+          <span class="tag">Payment issues</span><span class="tag">Create account</span>
+          <span class="tag">Recover password</span><span class="tag">Newsletter</span>
+          <span class="tag">Complaints</span><span class="tag">Human agent</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>© 2026 SupportBot · Seq2Seq customer support chatbot</footer>
+
+<script>
+  const chat = document.getElementById('chat');
+  const form = document.getElementById('form');
+  const input = document.getElementById('input');
+  const sendBtn = document.getElementById('send');
+
+  function now() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addMessage(text, who) {
+    const row = document.createElement('div');
+    row.className = 'row ' + who;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    const time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = now();
+    row.append(bubble, time);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function showTyping() {
+    const row = document.createElement('div');
+    row.className = 'row bot';
+    row.id = 'typing';
+    row.innerHTML = '<div class="bubble typing"><i></i><i></i><i></i></div>';
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function hideTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  function welcome() {
+    addMessage("Hi there! 👋 I'm SupportBot. Ask me about orders, refunds, shipping, accounts, and more.", 'bot');
+  }
+
+  async function send(text) {
+    text = text.trim();
+    if (!text) return;
+    addMessage(text, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+    showTyping();
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
       });
-
-      document.getElementById("note").textContent = data.known_words < data.total_words
-        ? `Model recognised ${data.known_words} of ${data.total_words} words — longer text gives more reliable results.`
-        : "";
-      resultEl.style.display = "block";
-      resultEl.style.animation = "none"; resultEl.offsetHeight; resultEl.style.animation = "";
+      const data = await res.json();
+      hideTyping();
+      addMessage(data.reply || 'Sorry, something went wrong.', 'bot');
+    } catch (err) {
+      hideTyping();
+      addMessage('Could not reach the server. Is the Flask app running?', 'bot');
     }
+    sendBtn.disabled = false;
+    input.focus();
+  }
 
-    btn.addEventListener("click", detect);
-    textEl.addEventListener("input", () => { countEl.textContent = textEl.value.length; });
-    textEl.addEventListener("keydown", e => {
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) detect();
-    });
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      textEl.value = "";
-      countEl.textContent = 0;
-      resultEl.style.display = "none";
-      errorEl.style.display = "none";
-      textEl.focus();
-    });
-    document.querySelectorAll(".chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        textEl.value = chip.dataset.text;
-        countEl.textContent = textEl.value.length;
-        detect();
-      });
-    });
-  </script>
+  form.addEventListener('submit', e => { e.preventDefault(); send(input.value); });
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => send(c.textContent)));
+  document.getElementById('clear').addEventListener('click', () => { chat.innerHTML = ''; welcome(); });
+
+  welcome();
+</script>
 </body>
 </html>
