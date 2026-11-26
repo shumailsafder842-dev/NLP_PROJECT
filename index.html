@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Namesight · Named entity recognition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef2f9;
+    --sheet: #ffffff;
+    --ink: #101b33;
+    --muted: #5a6685;
+    --rule: #d8deec;
+    --brand: #2b3cff;
+    --brand-ink: #ffffff;
+
+    --per: #ffd3dc;  --per-ink: #b3123f;
+    --org: #cfe0ff;  --org-ink: #1b4fd1;
+    --loc: #c9f0d8;  --loc-ink: #0d7a40;
+    --misc: #ffe7a6; --misc-ink: #8f5a00;
+
+    --sans: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, #dfe6ff 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; border-radius: 6px; }
+
+  /* ---------- header ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; }
+  .mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+  .mark svg { width: 30px; height: 30px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; padding: 7px 14px;
+    border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule);
+  }
+  .badge i { width: 9px; height: 9px; border-radius: 50%; background: #aab3cc; }
+  .badge.live i { background: #16a34a; box-shadow: 0 0 0 4px #16a34a22; }
+  .badge.demo i { background: #e59a00; box-shadow: 0 0 0 4px #e59a0022; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 44px 0 40px; max-width: 760px; }
+  h1 {
+    font-size: clamp(40px, 6.4vw, 76px);
+    line-height: 0.98; letter-spacing: -0.035em; font-weight: 800;
+    margin: 0 0 22px;
+  }
+  .hero p { font-size: 20px; color: var(--muted); margin: 0; max-width: 56ch; }
+
+  /* ---------- workbench ---------- */
+  .bench { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+  .sheet {
+    background: var(--sheet); border-radius: 22px;
+    border: 1px solid var(--rule);
+    box-shadow: 0 30px 60px -35px #1b2a6b55;
+  }
+  .compose { padding: 26px 28px 22px; }
+  label.field { display: block; font-weight: 600; margin-bottom: 10px; }
+  textarea {
+    width: 100%; min-height: 128px; resize: vertical;
+    font: 400 24px/1.5 var(--serif);
+    color: var(--ink); background: #f7f9fe;
+    border: 1.5px solid var(--rule); border-radius: 14px; padding: 16px 18px;
+  }
+  textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px #2b3cff1f; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+  .samples { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 15px; }
+  .samples button {
+    font: inherit; font-size: 14px; cursor: pointer; color: var(--ink);
+    background: #fff; border: 1px solid var(--rule); border-radius: 999px; padding: 5px 13px;
+    transition: border-color .15s, background .15s;
+  }
+  .samples button:hover { border-color: var(--brand); background: #f1f3ff; }
+  .go {
+    font: 700 17px var(--sans); cursor: pointer; border: 0;
+    background: var(--brand); color: var(--brand-ink);
+    padding: 13px 26px; border-radius: 12px;
+    box-shadow: 0 10px 22px -10px #2b3cffaa;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .go:hover { transform: translateY(-1px); box-shadow: 0 14px 26px -10px #2b3cffcc; }
+  .go:active { transform: translateY(1px); }
+  .go[disabled] { opacity: .6; cursor: progress; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  /* annotated result */
+  .result { border-top: 1px solid var(--rule); padding: 26px 28px 30px; }
+  .result h2 { font-size: 15px; font-weight: 600; color: var(--muted); margin: 0 0 14px; }
+  .annotated { font: 400 28px/2.35 var(--serif); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ent {
+    position: relative; padding: 2px 6px 3px; margin: 0 1px;
+    border-radius: 7px; cursor: default; transition: opacity .2s, filter .2s;
+    box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  }
+  .ent small {
+    font: 700 11px var(--sans); margin-left: 7px; padding: 2px 6px; border-radius: 5px;
+    vertical-align: 5px; background: #ffffffb8; letter-spacing: .02em;
+  }
+  .ent.PER  { background: var(--per);  color: var(--per-ink); }
+  .ent.ORG  { background: var(--org);  color: var(--org-ink); }
+  .ent.LOC  { background: var(--loc);  color: var(--loc-ink); }
+  .ent.MISC { background: var(--misc); color: var(--misc-ink); }
+  .ent.stamp { animation: stamp .42s cubic-bezier(.2, 1.4, .4, 1) both; animation-delay: var(--d, 0ms); }
+  @keyframes stamp {
+    from { opacity: 0; transform: scale(1.25) rotate(-1.5deg); background-color: transparent; }
+    to   { opacity: 1; transform: none; }
+  }
+  .dim .ent { opacity: .18; filter: grayscale(1); }
+  .dim .ent.on { opacity: 1; filter: none; }
+  .notice { margin-top: 18px; padding: 12px 16px; border-radius: 12px; background: #fff6df; color: #6b4a00; font-size: 15px; }
+  .error { margin-top: 14px; padding: 12px 16px; border-radius: 12px; background: #ffe8ec; color: #9b1237; font-size: 15px; }
+  .empty { color: var(--muted); font-size: 18px; margin: 0; }
+
+  /* ---------- sidebar ---------- */
+  aside { display: grid; gap: 24px; position: sticky; top: 20px; }
+  .panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 22px; padding: 22px; }
+  .panel h3 { margin: 0 0 14px; font-size: 17px; letter-spacing: -0.01em; }
+  .legend { display: grid; gap: 8px; }
+  .legend button {
+    display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 12px;
+    width: 100%; text-align: left; font: inherit; cursor: pointer; color: var(--ink);
+    background: transparent; border: 1.5px solid transparent; padding: 9px 10px; border-radius: 12px;
+    transition: background .15s, border-color .15s;
+  }
+  .legend button:hover { background: #f3f6fd; }
+  .legend button[aria-pressed="true"] { border-color: var(--ink); background: #f3f6fd; }
+  .legend b { font-weight: 600; }
+  .legend em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .legend .dot { width: 14px; height: 14px; border-radius: 4px; }
+  .legend .dot.PER { background: var(--per-ink); } .legend .dot.ORG { background: var(--org-ink); }
+  .legend .dot.LOC { background: var(--loc-ink); } .legend .dot.MISC { background: var(--misc-ink); }
+  .legend span.d { display: block; font-size: 13px; color: var(--muted); font-weight: 400; }
+  .found { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 300px; overflow: auto; }
+  .found li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+  .found li:last-child { border-bottom: 0; }
+  .found .t { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; align-self: center; }
+  .found .t.PER { background: var(--per); color: var(--per-ink); } .found .t.ORG { background: var(--org); color: var(--org-ink); }
+  .found .t.LOC { background: var(--loc); color: var(--loc-ink); } .found .t.MISC { background: var(--misc); color: var(--misc-ink); }
+  .found .c { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- how it works ---------- */
+  .how { padding: 76px 0 40px; }
+  .how h2 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 14px; max-width: 18ch; }
+  .how > p { color: var(--muted); max-width: 60ch; margin: 0 0 34px; }
+  .pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+  .stage { position: relative; padding: 20px 22px 22px; background: var(--sheet); border: 1px solid var(--rule); border-left-width: 0; }
+  .stage:first-child { border-left-width: 1px; border-radius: 18px 0 0 18px; }
+  .stage:last-child { border-radius: 0 18px 18px 0; }
+  .stage:not(:last-child)::after {
+    content: ""; position: absolute; right: -11px; top: 50%; width: 20px; height: 20px; z-index: 2;
+    background: var(--sheet); border-right: 1px solid var(--rule); border-top: 1px solid var(--rule);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .stage h4 { margin: 0 0 6px; font-size: 17px; }
+  .stage p { margin: 0; font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+  .stage .big { font: 800 30px/1 var(--sans); letter-spacing: -0.03em; color: var(--brand); margin-bottom: 10px; }
+
+  footer { padding: 30px 0 56px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--rule); margin-top: 40px; }
+
+  @media (max-width: 920px) {
+    .bench { grid-template-columns: 1fr; }
+    aside { position: static; }
+    .pipe { grid-template-columns: 1fr; }
+    .stage, .stage:first-child, .stage:last-child { border-left-width: 1px; border-top-width: 0; border-radius: 0; }
+    .stage:first-child { border-top-width: 1px; border-radius: 18px 18px 0 0; }
+    .stage:last-child { border-radius: 0 0 18px 18px; }
+    .stage:not(:last-child)::after { right: auto; left: 40px; top: auto; bottom: -11px; transform: rotate(135deg); }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .compose, .result { padding-left: 18px; padding-right: 18px; }
+    textarea { font-size: 20px; }
+    .annotated { font-size: 22px; }
+    .go { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mark">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="#2b3cff"/>
+        <rect x="6" y="9" width="13" height="5" rx="2.5" fill="#ffd3dc"/>
+        <rect x="6" y="18" width="20" height="5" rx="2.5" fill="#c9f0d8"/>
+        <rect x="21" y="9" width="5" height="5" rx="2.5" fill="#ffe7a6"/>
+      </svg>
+      Namesight
+    </div>
+    <span class="badge" id="status"><i></i><span>Checking model…</span></span>
+  </header>
+
+  <section class="hero">
+    <h1>Find the people, places and organizations in any text.</h1>
+    <p>Paste a sentence or a short article. A bidirectional LSTM trained on CoNLL-2003 highlights every name it recognizes and tells you what kind it is.</p>
+  </section>
+
+  <main class="bench">
+    <div class="sheet">
+      <div class="compose">
+        <label class="field" for="text">Text to analyze</label>
+        <textarea id="text" maxlength="2000" spellcheck="false">Barack Obama visited London and met Microsoft employees.</textarea>
+        <div class="row">
+          <div class="samples">
+            <span>Try:</span>
+            <button type="button" data-s="Angela Merkel met Emmanuel Macron in Berlin to discuss the European Union budget.">Politics</button>
+            <button type="button" data-s="Google and Apple shares fell after Reuters reported new rules in Brussels.">Business</button>
+            <button type="button" data-s="Imran Khan landed in Islamabad before the Pakistan versus England match in Lahore.">Sport</button>
+          </div>
+          <button class="go" id="go" type="button">Analyze text</button>
+        </div>
+        <p class="hint">Press Ctrl + Enter to analyze. Up to 2,000 characters.</p>
+        <div id="error" class="error" hidden></div>
+      </div>
+
+      <div class="result" id="result">
+        <h2>Annotated text</h2>
+        <p class="empty">Your highlighted text will appear here.</p>
+      </div>
+    </div>
+
+    <aside>
+      <section class="panel" aria-labelledby="lg">
+        <h3 id="lg">Entity types</h3>
+        <div class="legend" id="legend">
+          <button type="button" data-type="PER" aria-pressed="false"><i class="dot PER"></i><b>Person<span class="d">Names of people</span></b><em>0</em></button>
+          <button type="button" data-type="ORG" aria-pressed="false"><i class="dot ORG"></i><b>Organization<span class="d">Companies, agencies</span></b><em>0</em></button>
+          <button type="button" data-type="LOC" aria-pressed="false"><i class="dot LOC"></i><b>Location<span class="d">Cities, countries</span></b><em>0</em></button>
+          <button type="button" data-type="MISC" aria-pressed="false"><i class="dot MISC"></i><b>Miscellaneous<span class="d">Nationalities, events</span></b><em>0</em></button>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="fd">
+        <h3 id="fd">Entities found</h3>
+        <ul class="found" id="found"><li style="color:var(--muted)">Nothing analyzed yet.</li></ul>
+      </section>
+    </aside>
+  </main>
+
+  <section class="how">
+    <h2>How the model reads a sentence</h2>
+    <p>Every word becomes a vector, then two stacked recurrent layers read the sentence forwards and backwards so each word is judged in context. The last layer picks one of nine tags per word.</p>
+    <div class="pipe">
+      <div class="stage"><div class="big">120</div><h4>Words in</h4><p>Sentences are cut or padded to 120 tokens.</p></div>
+      <div class="stage"><div class="big">128</div><h4>Embedding</h4><p>Each word maps to a 128-number vector. Unknown words share one slot.</p></div>
+      <div class="stage"><div class="big">64</div><h4>BiLSTM</h4><p>Reads left-to-right and right-to-left, with dropout of 0.3.</p></div>
+      <div class="stage"><div class="big">32</div><h4>BiLSTM</h4><p>A second pass refines the context, again with dropout of 0.3.</p></div>
+      <div class="stage"><div class="big">9</div><h4>Softmax</h4><p>One tag per word: O plus B- and I- for four entity types.</p></div>
+    </div>
+  </section>
+
+  <footer>Namesight runs your trained model locally. Text you enter is not sent anywhere else.</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const LABEL = { PER: "Person", ORG: "Organization", LOC: "Location", MISC: "Misc" };
+let current = null;   // last response
+let focusType = null; // legend filter
+
+// ---- model status badge ----
+fetch("/api/status").then(r => r.json()).then(s => {
+  const b = $("status");
+  b.classList.add(s.model_loaded ? "live" : "demo");
+  b.lastElementChild.textContent = s.model_loaded ? "BiLSTM model ready" : "Demo mode: model files not found";
+}).catch(() => { $("status").lastElementChild.textContent = "Server unreachable"; });
+
+// ---- sample buttons ----
+document.querySelectorAll(".samples button").forEach(btn => {
+  btn.addEventListener("click", () => { $("text").value = btn.dataset.s; analyze(); });
+});
+
+$("go").addEventListener("click", analyze);
+$("text").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) analyze(); });
+
+// ---- legend filter ----
+document.querySelectorAll("#legend button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    focusType = focusType === btn.dataset.type ? null : btn.dataset.type;
+    applyFocus();
+  });
+});
+function applyFocus() {
+  document.querySelectorAll("#legend button").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.type === focusType)));
+  const box = document.querySelector(".annotated");
+  if (!box) return;
+  box.classList.toggle("dim", !!focusType);
+  box.querySelectorAll(".ent").forEach(el => el.classList.toggle("on", el.classList.contains(focusType)));
+}
+
+async function analyze() {
+  const text = $("text").value;
+  const err = $("error"), go = $("go");
+  err.hidden = true;
+  go.disabled = true; go.textContent = "Analyzing…";
+  try {
+    const res = await fetch("/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Something went wrong.");
+    current = data;
+    focusType = null;
+    render(data);
+  } catch (e) {
+    err.textContent = e.message.includes("fetch")
+      ? "Can't reach the server. Start it with python app.py and reload this page."
+      : e.message;
+    err.hidden = false;
+  } finally {
+    go.disabled = false; go.textContent = "Analyze text";
+  }
+}
+
+function render(data) {
+  // annotated text
+  const result = $("result");
+  result.replaceChildren();
+  const h = document.createElement("h2");
+  h.textContent = data.entities.length
+    ? `Annotated text: ${data.entities.length} ${data.entities.length === 1 ? "entity" : "entities"} found`
+    : "Annotated text";
+  result.appendChild(h);
+
+  const box = document.createElement("div");
+  box.className = "annotated";
+  let pos = 0;
+  data.entities.forEach((en, i) => {
+    box.append(document.createTextNode(data.text.slice(pos, en.start)));
+    const span = document.createElement("span");
+    span.className = `ent ${en.type} stamp`;
+    span.style.setProperty("--d", `${i * 110}ms`);
+    span.title = `${LABEL[en.type] || en.type}` + (data.demo ? "" : ` · ${(en.confidence * 100).toFixed(0)}% confident`);
+    span.append(document.createTextNode(data.text.slice(en.start, en.end)));
+    const tag = document.createElement("small");
+    tag.textContent = en.type;
+    span.appendChild(tag);
+    box.appendChild(span);
+    pos = en.end;
+  });
+  box.append(document.createTextNode(data.text.slice(pos)));
+  result.appendChild(box);
+
+  if (!data.entities.length) {
+    const p = document.createElement("p");
+    p.className = "notice";
+    p.textContent = "No entities found. Names are easier to spot when they start with a capital letter.";
+    result.appendChild(p);
+  }
+  if (data.demo) {
+    const p = document.createElement("p");
+    p.className = "notice";
+    p.textContent = "Demo mode: these highlights come from a simple rule-based stand-in. Put NER_BiLSTM.keras, NER_word2idx.pkl and NER_label_names.json next to app.py to use your trained model.";
+    result.appendChild(p);
+  }
+  if (data.truncated) {
+    const p = document.createElement("p");
+    p.className = "notice";
+    p.textContent = "The model reads the first 120 words only. Anything after that was not analyzed.";
+    result.appendChild(p);
+  }
+
+  // legend counts
+  const counts = { PER: 0, ORG: 0, LOC: 0, MISC: 0 };
+  data.entities.forEach(e => { if (e.type in counts) counts[e.type]++; });
+  document.querySelectorAll("#legend button").forEach(b => {
+    b.querySelector("em").textContent = counts[b.dataset.type];
+  });
+  applyFocus();
+
+  // entity list
+  const list = $("found");
+  list.replaceChildren();
+  if (!data.entities.length) {
+    const li = document.createElement("li");
+    li.style.color = "var(--muted)";
+    li.textContent = "No entities in this text.";
+    list.appendChild(li);
+  }
+  data.entities.forEach(en => {
+    const li = document.createElement("li");
+    const left = document.createElement("span");
+    left.textContent = en.text;
+    const right = document.createElement("span");
+    right.style.display = "flex"; right.style.gap = "10px";
+    if (!data.demo) {
+      const c = document.createElement("span");
+      c.className = "c";
+      c.textContent = `${(en.confidence * 100).toFixed(0)}%`;
+      right.appendChild(c);
+    }
+    const t = document.createElement("span");
+    t.className = `t ${en.type}`;
+    t.textContent = en.type;
+    right.appendChild(t);
+    li.append(left, right);
+    list.appendChild(li);
+  });
+}
+
+analyze();
+</script>
+</body>
+</html>
